@@ -1,6 +1,7 @@
 import React from "react";
 import axios from 'axios';
 import ReactPaginate from 'react-paginate';
+import './Pagination.css';
 
 class Data extends React.Component {
    constructor(props) {
@@ -8,7 +9,7 @@ class Data extends React.Component {
       this.state = {
          offset: 0,
          data: [],
-         perPage: 10,
+         perPage: 12,
          currentPage: 0
       };
       this.handlePageClick = this.handlePageClick.bind(this);
@@ -19,33 +20,31 @@ class Data extends React.Component {
          .get(`https://corona.lmao.ninja/v2/jhucsse`)
          .then(res => {
             const data = res.data;
+
+            const newArray = data.filter(function(cases) {
+               if(cases.stats.confirmed >= 100000 && cases.stats.recovered >= 100) {
+                  return <tr><td>{cases.province}, {cases.country}</td></tr>
+                  // const newArray2 = data.map(item =>
+                  // )
+               }
+            })
+            console.log(newArray)
+
             const slice = data.slice(this.state.offset, this.state.offset + this.state.perPage)
             const postData = slice.map(item => 
-               <>
-               <table>
-                  <tbody>
-                     <tr>
-                        <th>Country</th>
-                        <th>Confirmed Cases</th>
-                        <th>Deaths</th>
-                        <th>Recovered</th>
-                     </tr>
-
-                     <tr key={item.coordinates.latitude + item.coordinates.longitude + Math.random()}>
-                        <td>{item.province}, {item.country}</td>
-                        <td>{item.stats.confirmed}</td>
-                        <td>{item.stats.deaths}</td>
-                        <td>{item.stats.recovered}</td>
-                     </tr>
-                  </tbody>
-               </table>
-               </>
+               <tr key={item.coordinates.latitude + item.coordinates.longitude + Math.random()}>
+                  <td>{item.province}, {item.country}</td>
+                  <td>{item.stats.confirmed}</td>
+                  <td>{item.stats.deaths}</td>
+                  <td>{item.stats.recovered}</td>
+               </tr>
             )
 
             this.setState({
                pageCount: Math.ceil(data.length / this.state.perPage),
                
-               postData
+               postData,
+               newArray
             })
          });
    }
@@ -62,20 +61,34 @@ class Data extends React.Component {
    };
 
    componentDidMount() {
-         this.receivedData()
+      this.receivedData()
    }
    render() {
+      // console.log("Coming data", this.state.newArray)
+
       return (
          <div>
-            {this.state.postData}
+            <table>
+               <tbody>
+                  <tr>
+                     <th>Country</th>
+                     <th>Confirmed Cases</th>
+                     <th>Deaths</th>
+                     <th>Recovered</th>
+                  </tr>
+
+                  {this.state.postData}
+               </tbody>
+            </table>
+            
             <ReactPaginate
                previousLabel={"prev"}
                nextLabel={"next"}
                breakLabel={"..."}
                breakClassName={"break-me"}
                pageCount={this.state.pageCount}
-               marginPagesDisplayed={2}
-               pageRangeDisplayed={5}
+               marginPagesDisplayed={1}
+               pageRangeDisplayed={2}
                onPageChange={this.handlePageClick}
                containerClassName={"pagination"}
                subContainerClassName={"pages pagination"}
